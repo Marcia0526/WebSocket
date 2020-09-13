@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>websocket</title>
+    <script type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.min.js"></script>
+    <style type="text/css">
+        p{
+            color: #ff5400;
+            position: relative;
+            left: 650px;
+            font-size: larger;
+            font-weight: bold;
+        }
+        #bt-send{
+            left: 780px;
+            position: relative;
+        }
+        .div-msg{
+            left: 780px;
+            position: relative;
+            font-size: 18px;
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+<div style="margin: auto;text-align: center">
+    <h1>Welcome to websocket</h1>
+</div>
+<!--the method of getting value from ViewModel in thymeleaf-->
+<input id="username" type="text" th:value="${username}"  style="display: none"/>
+<div id="bt-send">
+    <button id="send">Send Message</button>
+</div>
+<div id="div-text">
+    <p>WebSocket Connection Status:</p>
+    <div id="message" class="div-msg"></div>
+    <p> Server to Client:</p>
+    <div id="msgToClient" class="div-msg"></div>
+    <p> Client to Server:</p>
+    <div id="msgToServer" class="div-msg"></div>
+</div>
+
+</body>
+
+<script type="text/javascript">
+    if (typeof (WebSocket) == "undefined") {
+        console.log("Your browser does not support WebSocket");
+    } else {
+        var webSocket;
+        webSocket = new WebSocket("ws://localhost:8080/websocket/" + $('#username').val());
+        //call back
+        webSocket.onopen = function () {
+            console.log("websocket connected successfully");
+            setMessageHTML('#message',"websocket connected successfully");
+        };
+
+        //Handle message from server
+        webSocket.onmessage = function (evt) {
+            var server_msg = evt.data;
+            console.log("Received message from server:" + server_msg);
+            setMessageHTML('#msgToClient',server_msg);
+        };
+        webSocket.error = function () {
+            console.log("Client error")
+        };
+        webSocket.close = function () {
+            console.log("Connection closed from client")
+        };
+        $('#send').click(function () {
+            $('#msgToServer').append("<li>Pushing message to server!</li>")
+            var message = {
+                "message": "push message to server",
+                "user_name": $('#username').val()
+            };
+            webSocket.send(JSON.stringify(message));
+        });
+
+        function setMessageHTML(id_index,connection_msg) {
+            $(id_index).html(connection_msg);
+        }
+    }
+</script>
+
+</html>
+
+
